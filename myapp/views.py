@@ -8,29 +8,35 @@ from django.contrib.auth.models import User
 
 
 def loginView(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return HttpResponse(200)
+    if not request.user.is_authenticated:
+        if request.method == 'POST':
+            username = request.POST['username']
+            password = request.POST['password']
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return HttpResponse(200)
+            else:
+                return HttpResponse(400)
         else:
-            return HttpResponse(400)
+            return HttpResponse("Send Post Request with username and password")
     else:
-        return HttpResponse("Send Post Request with username and password")
+        return redirect('wallet')
 
 
 def registerView(request):
-    if request.method == 'POST':
-        rUsername = request.POST['username']
-        rPassword = request.POST['password']
-        newUser = User.objects.create(username=rUsername, password=rPassword)
-        Profile.create(user=newUser, BTC_amount=uniform(
-            1.0, 10.0), USD_amount=uniform(5000.0, 20000.0))
-        return HttpResponse(200)
+    if not request.user.is_authenticated:
+        if request.method == 'POST':
+            rUsername = request.POST['username']
+            rPassword = request.POST['password']
+            newUser = User.objects.create(username=rUsername, password=rPassword)
+            Profile.create(user=newUser, BTC_amount=uniform(
+                1.0, 10.0), USD_amount=uniform(5000.0, 20000.0))
+            return HttpResponse(200)
+        else:
+            return HttpResponse("Send Post Request with username and password to register new user")
     else:
-        return HttpResponse("Send Post Request with username and password for register new user")
+        return redirect('wallet')
 
 
 @login_required(login_url='/login/')
@@ -59,7 +65,7 @@ def UserOrderView(request):
 
 @login_required(login_url='/login/')
 def activeOrdersView(request):
-    query = Order.objects.all()
+    query = Order.objects.filter(status='PENDING')
     response = []
     for order in query:
         response.append({'id': order.id,
@@ -116,7 +122,6 @@ def publishOrderView(request):
             return HttpResponse(200)
 
     else:
-        return HttpResponse("Send Post Request with username and password for register new user")
-
+        return HttpResponse("Send Post Request with quantity, price, and 'buy' or 'sell' to create a new order")
 
 # Create your views here.
