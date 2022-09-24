@@ -54,7 +54,7 @@ class Order(models.Model):
             return 0
         else:
             if self.buy_sell == 'buy':
-                sellOrders = Order.objects.filter(buy_sell="sell")
+                sellOrders = Order.objects.filter(buy_sell="sell").order_by('price')
                 for sellorder in sellOrders:
                     if self.price >= sellorder.price and sellorder.quantity >= self.quantity and self.profile != sellorder.profile:
                         self.status = "EXECUTED"
@@ -73,7 +73,7 @@ class Order(models.Model):
                 return self.save()
 
             if self.buy_sell == 'sell':
-                buyOrders = Order.objects.filter(buy_sell="buy")
+                buyOrders = Order.objects.filter(buy_sell="buy").order_by('price')
                 for buyorder in buyOrders:
                     if self.price <= buyorder.price and self.profile != buyorder.profile:
                         self.status = "EXECUTED"
